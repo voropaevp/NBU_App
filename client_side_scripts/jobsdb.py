@@ -127,7 +127,6 @@ field61 = Deduplication ratio percentkjkj
 field62 = Accelerator optimization
 field63 = Instance database name
 
-__author__ = 'Pavel Voropaev'
 from re import match, sub, split
 
 all_columns = open(r"C:\Users\vorop_000\Desktop\all_columns", 'r').readlines()
