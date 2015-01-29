@@ -172,7 +172,7 @@ class jobsdb:
             self.content[line[0]].append(filelist)
             for i in range(31+line[32],3)
             return
-# field34 = Try count. The number of tries for the job ID
+# field34 = Try count. The number of tries for sthe job ID
 # field35 = Try information. A comma-delimited list of try status information
 # trypid=try PID, trystunit=storage unit, tryserver=server, trystarted=time in epoch
 # the try began, tryelapsed=elapsed time, tryended=time in epoch the try ended,
