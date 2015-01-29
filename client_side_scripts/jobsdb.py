@@ -196,7 +196,7 @@ class jobsdb:
 # the try began 4, tryelapsed=elapsed time 5, tryended=time in epoch the try ended 6,
 # trystatus=try status code 7, trystatusdescription 8, trystatuscount=number of comma
 # delimited strings in trystatuslines below 9, trystatuslines=try status output,
-# trybyteswritten=amount of data written in kilobytes, tryfileswritten=number of
+# trybyteswritten=amount of data waritten in kilobytes, tryfileswritten=number of
 # files writtens123
 
 data = jobsdb(r"C:\Users\vorop_000\Desktop\all_columns", "csv")
