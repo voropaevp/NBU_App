@@ -164,8 +164,9 @@ class jobsdb:
                 self.content[line[0]].append(line[i])
             offset = int(line[31]) # Number of files
             if offset in (0,None):
-                offset = 1
-            filelist = line[32:32+offset]  # Filenames
+                filelist = [None]
+            else:
+                filelist = line[32:32+offset]  # Filenames
             self.content[line[0]].append(filelist)
             attempts = list()
             if line[33+offset] == 0:
@@ -182,16 +183,17 @@ class jobsdb:
                     else:
                         logs = line[10+offset:10+log_offset+offset]
                     offset += log_offset
+                    log_offset = 0
                     attempt.append(logs)
                     attempt.append(line[10+offset])  # trybyteswritten
                     attempt.append(line[11+offset])  # tryfileswritten
                     attempts.append(attempt)
                     offset += 12
-                self.content[line[0]].append(attempts)
+            self.content[line[0]].append(attempts)
             for i in range(offset,len(line)-1):
                 self.content[line[0]].append(line[i])
-        if len(self.content[line[0]]) != 57:
-            return 1
+            if len(self.content[line[0]]) != 57:
+                return 1
 # field34 = Try count. The number of tries for the job ID
 # field35 = Try information. A comma-delimited list of try status information
 # trypid=try PID 1, trystunit=storage unit 2, tryserver=server 3, trystarted=time in epoch
