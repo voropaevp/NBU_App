@@ -2,6 +2,7 @@ __author__ = 'Pavel Voropaev'
 
 import csv
 import sys
+import json
 
 
 class jobsdb:
@@ -9,7 +10,7 @@ class jobsdb:
         self.content = dict()
         self.path = path
         if type_ == "json":
-            return
+            self._read_json()
         if type_ == "csv":
             self._read_csv()
         else:
@@ -76,9 +77,32 @@ class jobsdb:
                 self.content[line[0]].append(None)
             if len(self.content[line[0]]) != 59:
                 return 1
+        csvfile.close()
 
+    def _read_json(self):
+        try:
+            jsonfile = open(self.path)
+            self.content = json.load(jsonfile)
+            jsonfile.close()
+        except IOError:
+            print u"Couldn't read file at {0:s}".format(self.path)
+            sys.exit(1)
+        except Exception:
+            raise
+
+    def write_json(self, path):
+        try:
+            jsonfile = open(path, 'w')
+            self.content = json.dump(self.content, jsonfile)
+            jsonfile.close()
+        except IOError:
+            print u"Couldn't write file at {0:s}".format(path)
+            sys.exit(1)
+        except Exception:
+            raise
 
 
 data = jobsdb(r"C:\Users\vorop_000\Desktop\all_columns", "csv")
 print len(data.content)
+data.write_json(r"C:\Users\vorop_000\Desktop\all_columns.json")
 pass
