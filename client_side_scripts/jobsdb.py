@@ -129,9 +129,37 @@ field63 = Instance database name
 
 from re import match, sub, split
 
+class jobsdb:
+    def __init__(self, path, type_):
+        self.content = None
+        self.path = path
+        if type_ == "json":
+            return
+        if type == "raw":
+            return
+        else:
+            return
+
+    def __getitem__(self, job_id):
+            if job_id in self.content:
+                return self.content[job_id]
+            else:
+                return None
+
+    def __iter__(self):
+        if self.content:
+            for content in self.content:
+                yield content
+
+    def _read_raw(self):
+        file = open(self.path)
+        
+
+
+
+
+
 all_columns = open(r"C:\Users\vorop_000\Desktop\all_columns", 'r').readlines()
 for line in all_columns:
     s=split(',',line)
-    asdd
-    adsd
-    add
+
