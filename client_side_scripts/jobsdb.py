@@ -197,7 +197,7 @@ class jobsdb:
 # trystatus=try status code 7, trystatusdescription 8, trystatuscount=number of comma
 # delimited strings in trystatuslines below 9, trystatuslines=try status output,
 # trybyteswritten=amount of data written in kilobytes, tryfileswritten=number of
-# files writtenss
+# files writtenss123
 
 data = jobsdb(r"C:\Users\vorop_000\Desktop\all_columns", "csv")
 print data.content
