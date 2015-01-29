@@ -162,24 +162,42 @@ class jobsdb:
             for i in range(1,32):
                 self.content[line[0]].append(line[i])
             offset = line[32] # Number of files
-            if offset == 0:
+            if offset in (0,None):
                 filelist = [None]
                 offset = 1
             else:
                 filelist = line[32:31+offset]  # Filenames
-            for i in range(1,line[33+offset]):  # Number of attempts
-
             self.content[line[0]].append(filelist)
-            for i in range(31+line[32],3)
-            return
-# field34 = Try count. The number of tries for sthe job ID
+            attempts = list()
+            if line[33+offset] == 0:
+                attempts = [None]
+            else:
+                offset += 33
+                attemps_number = line[offset]
+                for i in range(1,attemps_number):
+                    attempt = line[1+offset:9+offset]
+                    log_offset = line[10+offset]
+                    if log_offset in (0, None):
+                        logs = [None]
+                        log_offset = 1
+                    else:
+                        logs = line[11+offset:10+log_offset+offset]
+                    offset += log_offset
+                    attempt.append(logs)
+                    attempt.append(line[12+offset])  # trybyteswritten
+                    attempt.append(line[13+offset])  # tryfileswritten
+                    attempts.append(attempt)
+                    offset += 13
+            self.content[line[0]].append[line[offset:]]
+            return 1
+# field34 = Try count. The number of tries for the job ID
 # field35 = Try information. A comma-delimited list of try status information
-# trypid=try PID, trystunit=storage unit, tryserver=server, trystarted=time in epoch
-# the try began, tryelapsed=elapsed time, tryended=time in epoch the try ended,
-# trystatus=try status code, trystatusdescription, trystatuscount=number of comma
-# delimited strings in trystatuslines below, trystatuslines=try status output,
+# trypid=try PID 1, trystunit=storage unit 2, tryserver=server 3, trystarted=time in epoch
+# the try began 4, tryelapsed=elapsed time 5, tryended=time in epoch the try ended 6,
+# trystatus=try status code 7, trystatusdescription 8, trystatuscount=number of comma
+# delimited strings in trystatuslines below 9, trystatuslines=try status output,
 # trybyteswritten=amount of data written in kilobytes, tryfileswritten=number of
-# files written
+# files writtensdA12`12`12
 
 data = jobsdb(r"C:\Users\vorop_000\Desktop\all_columns", "csv")
 print data.content
