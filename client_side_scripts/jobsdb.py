@@ -133,7 +133,7 @@ class jobsdb:
         if type_ == "json":
             return
         if type_ == "csv":
-            self._read_csv()
+            self._read_csv
         else:
             return
 
@@ -148,6 +148,7 @@ class jobsdb:
             for content in self.content:
                 yield content
 
+    @property
     def _read_csv(self):
         try:
             csvfile = open(self.path)
@@ -159,36 +160,37 @@ class jobsdb:
             raise
         for line in csv_reader:
             self.content[line[0]] = list()
-            for i in range(1,32):
+            for i in range(1,31):
                 self.content[line[0]].append(line[i])
-            offset = line[32] # Number of files
+            offset = int(line[31]) # Number of files
             if offset in (0,None):
-                filelist = [None]
                 offset = 1
-            else:
-                filelist = line[32:31+offset]  # Filenames
+            filelist = line[32:32+offset]  # Filenames
             self.content[line[0]].append(filelist)
             attempts = list()
             if line[33+offset] == 0:
                 attempts = [None]
             else:
-                offset += 33
-                attemps_number = line[offset]
-                for i in range(1,attemps_number):
+                offset += 32
+                attempts_number = int(line[offset])
+                for i in range(1, attempts_number + 1):
                     attempt = line[1+offset:9+offset]
-                    log_offset = line[10+offset]
+                    log_offset = int(line[9+offset])
                     if log_offset in (0, None):
                         logs = [None]
                         log_offset = 1
                     else:
-                        logs = line[11+offset:10+log_offset+offset]
+                        logs = line[10+offset:10+log_offset+offset]
                     offset += log_offset
                     attempt.append(logs)
-                    attempt.append(line[12+offset])  # trybyteswritten
-                    attempt.append(line[13+offset])  # tryfileswritten
+                    attempt.append(line[10+offset])  # trybyteswritten
+                    attempt.append(line[11+offset])  # tryfileswritten
                     attempts.append(attempt)
-                    offset += 13
-            self.content[line[0]].append[line[offset:]]
+                    offset += 12
+                self.content[line[0]].append(attempts)
+            for i in range(offset,len(line)-1):
+                self.content[line[0]].append(line[i])
+        if len(self.content[line[0]]) != 57:
             return 1
 # field34 = Try count. The number of tries for the job ID
 # field35 = Try information. A comma-delimited list of try status information
@@ -204,6 +206,3 @@ class jobsdb:
 data = jobsdb(r"C:\Users\vorop_000\Desktop\all_columns", "csv")
 print data.content
 pass
-
-testing git
-please work
