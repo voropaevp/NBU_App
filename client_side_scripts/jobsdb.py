@@ -161,13 +161,25 @@ class jobsdb:
             self.content[line[0]] = list()
             for i in range(1,32):
                 self.content[line[0]].append(line[i])
-            if line[32] == 0:
+            offset = line[32] # Number of files
+            if offset == 0:
                 filelist = [None]
+                offset = 1
             else:
-                filelist = line[32:31+line[32]]
-            self.content[line[0]].append(filelist)
+                filelist = line[32:31+offset]  # Filenames
+            for i in range(1,line[33+offset]):  # Number of attempts
 
+            self.content[line[0]].append(filelist)
+            for i in range(31+line[32],3)
             return
+# field34 = Try count. The number of tries for the job ID
+# field35 = Try information. A comma-delimited list of try status information
+# trypid=try PID, trystunit=storage unit, tryserver=server, trystarted=time in epoch
+# the try began, tryelapsed=elapsed time, tryended=time in epoch the try ended,
+# trystatus=try status code, trystatusdescription, trystatuscount=number of comma
+# delimited strings in trystatuslines below, trystatuslines=try status output,
+# trybyteswritten=amount of data written in kilobytes, tryfileswritten=number of
+# files written
 
 data = jobsdb(r"C:\Users\vorop_000\Desktop\all_columns", "csv")
 print data.content
