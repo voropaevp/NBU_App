@@ -1,14 +1,15 @@
 __author__ = 'Pavel Voropaev'
 
-import csv
 import sys
+import codecs
 import json
+import unicodecsv
 
 
 class jobsdb:
     def __init__(self, path, type_):
-        self.content = dict()
         self.path = path
+        self.content = dict()
         if type_ == "json":
             self._read_json()
         if type_ == "csv":
@@ -28,14 +29,8 @@ class jobsdb:
                 yield content
 
     def _read_csv(self):
-        try:
-            csvfile = open(self.path)
-            csv_reader = csv.reader(csvfile, delimiter=',', escapechar='\\')
-        except IOError:
-            print u"Couldn't read file at {0:s}".format(self.path)
-            sys.exit(1)
-        except Exception:
-            raise
+        csvfile = open(self.path)
+        csv_reader = unicodecsv.reader(csvfile, delimiter=',', escapechar='\\', encoding='utf-8', errors='ignore')
         for line in csv_reader:
             self.content[line[0]] = list()
             for i in range(1, 31):
@@ -61,7 +56,6 @@ class jobsdb:
                     else:
                         logs = line[10 + offset:10 + log_offset + offset]
                     offset += log_offset
-                    log_offset = 0
                     attempt.append(logs)
                     attempt.append(line[10 + offset])  # trybyteswritten
                     attempt.append(line[11 + offset])  # tryfileswritten
@@ -80,19 +74,13 @@ class jobsdb:
         csvfile.close()
 
     def _read_json(self):
-        try:
-            jsonfile = open(self.path)
-            self.content = json.load(jsonfile)
-            jsonfile.close()
-        except IOError:
-            print u"Couldn't read file at {0:s}".format(self.path)
-            sys.exit(1)
-        except Exception:
-            raise
+        jsonfile = open(self.path)
+        self.content = json.load(jsonfile)
+        jsonfile.close()
 
     def write_json(self, path):
         try:
-            jsonfile = open(path, 'w')
+            jsonfile = codecs.open(path, 'w', encoding='utf-8')
             self.content = json.dump(self.content, jsonfile)
             jsonfile.close()
         except IOError:
