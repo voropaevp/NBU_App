@@ -82,9 +82,7 @@ class JobsDB(object):
             if len(content[line[0]]) != cls.NUMBER_OF_FIELDS + 2:
                 raise Exception("Could not parse following line" + line)
         csvfile.close()
-        items = content.items()
-        items.reverse()
-        content = OrderedDict(items)
+        sorted(content,reverse=True)
         return cls(content)
 
     @classmethod
@@ -105,6 +103,7 @@ class JobsDB(object):
         try:
             jsonfile = codecs.open(path, 'w', encoding='utf-8')
             self.content = json.dump(self, jsonfile)
+            sorted(self.content,reverse=True)
             jsonfile.close()
         except IOError:
             print u"Couldn't write file at {0:s}".format(path)
@@ -121,8 +120,8 @@ class JobsDBDiff(object):
         self.attempts_diff = OrderedDict()
         self.file_list_diff = OrderedDict()
         if jobs_db_new.content.keys()[1] < jobs_db_old.content.keys()[1]:
-            raise Exception("New jobs object appears to be older the old jobs object" + jobs_db_new.keys()[
-                1] + "should be greater than" + jobs_db_old.keys()[1])
+            raise Exception("New jobs object appears to be older the old jobs object" + jobs_db_new.content.keys()[
+                1] + " should be greater than " + jobs_db_old.content.keys()[1])
 
         while True:
             if len(jobs_db_new) == 0:
@@ -145,18 +144,18 @@ class JobsDBDiff(object):
                 else:
                     self.file_list_diff[job_id] = set(
                         jobs_db_new[job_id][cls.NUMBER_OF_FILES]) - set(jobs_db_old[job_id][cls.NUMBER_OF_FILES])
-                    self.attempts[job_id] = [job_id] = jobs_db_new[job_id][set(
+                    self.attempts_diff[job_id] = [job_id] = jobs_db_new[job_id][set(
                         jobs_db_new[job_id][cls.ATTEMPTS]) - set(jobs_db_old[job_id][cls.ATTEMPTS])]
                     if len(self.file_list_diff[job_id]) == 0:
                         del self.file_list_diff[job_id]
                     for attempt in jobs_db_new[job_id][cls.ATTEMPTS]:
-                        self.attempts[job_id][attempt] = OrderedDict()
+                        self.attempts_diff[job_id][attempt] = OrderedDict()
                         if attempt not in jobs_db_old[job_id][cls.ATTEMPTS]:
-                            self.attempts[job_id][attempt] = jobs_db_new[job_id][cls.ATTEMPTS][attempt]
+                            self.attempts_diff[job_id][attempt] = jobs_db_new[job_id][cls.ATTEMPTS][attempt]
                         else:
                             file_list = set(obs_db_new[job_id][cls.ATTEMPTS][attempt]) - set(
                                 obs_db_old[job_id][cls.ATTEMPTS][attempt])
-                            self.attempts[job_id][attempt] = list(file_list)
+                            self.attempts_diff[job_id][attempt] = list(file_list)
 
 
 data1 = JobsDB.from_csv(r"C:\Users\vorop_000\Desktop\all_columns")
