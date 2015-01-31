@@ -20,14 +20,14 @@ class JobsDB(object):
         self.content = content
 
     def __getitem__(self, job_id):
-        if job_id in self:
-            return self[job_id]
+        if job_id in self.content:
+            return self.content[job_id]
         else:
             return None
 
     def __iter__(self):
         if self.content:
-            for content in self:
+            for content in self.content:
                 yield content
 
     def __len__(self):
@@ -147,7 +147,7 @@ class JobsDBDiff(object):
 
         for job_id in active_jobs:
             if job_id in jobs_db_new.content:
-                if jobs_db_new.content[job_id][:self.ATTEMPTS] != jobs_db_old.content[job_id]:
+                if jobs_db_new.content[job_id][2:self.ATTEMPTS] != jobs_db_old.content[job_id][2:self.ATTEMPTS]:
                     self.content_diff[job_id] = jobs_db_new.content[job_id]
                 else:#  stop after pushing full job details.
                     self.file_list_diff[job_id] = set(
