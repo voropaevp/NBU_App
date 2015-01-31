@@ -82,15 +82,14 @@ class JobsDB(object):
             if len(content[line[0]]) != cls.NUMBER_OF_FIELDS + 2:
                 raise Exception("Could not parse following line" + line)
         csvfile.close()
-        sorted(content,reverse=True)
         return cls(content)
 
     @classmethod
     def from_json(cls, path):
         jsonfile = open(path)
-        content = OrderedDict(json.load(jsonfile))
+        items = json.load(jsonfile)
         jsonfile.close()
-        return cls(content)
+        return cls(OrderedDict(sorted(items.items(), reverse=True)))
 
     def get_active_jobs(self):
         active_jobs = list()
@@ -113,48 +112,53 @@ class JobsDB(object):
 
 
 class JobsDBDiff(object):
+    NUMBER_OF_FILES = 31  # absolute field offset for file count in csv or in content object
+    ATTEMPTS = 32  # absolute field offset for job attempts in content
+    NUMBER_OF_LOGS = 9  # field offset relative to attempt with log file count in csv
+    NUMBER_OF_FIELDS = 57  # total minimum number of fields in content, might be more due to database backups
+
     def __init__(self, jobs_db_old, jobs_db_new):
         assert type(jobs_db_new) is JobsDB, "Type is not JobsDB for jobs_db_new: %r" % type(jobs_db_new)
         assert type(jobs_db_old) is JobsDB, "Type is not JobsDB for jobs_db_old: %r" % type(jobs_db_old)
         self.content_diff = OrderedDict()
         self.attempts_diff = OrderedDict()
         self.file_list_diff = OrderedDict()
-        if jobs_db_new.content.keys()[1] < jobs_db_old.content.keys()[1]:
+        if jobs_db_new.content.keys()[0] < jobs_db_old.content.keys()[0]:
             raise Exception("New jobs object appears to be older the old jobs object" + jobs_db_new.content.keys()[
-                1] + " should be greater than " + jobs_db_old.content.keys()[1])
+                0] + " should be greater than " + jobs_db_old.content.keys()[0])
 
         while True:
             if len(jobs_db_new) == 0:
                 break
-            new_job_id = jobs_db_new.content.keys()[1]
-            old_job_id = jobs_db_old.content.keys()[1]
+            new_job_id = jobs_db_new.content.keys()[0]
+            old_job_id = jobs_db_new.content.keys()[0]
             if new_job_id > old_job_id:
                 self.content_diff[new_job_id] = jobs_db_new.content[new_job_id]
-                del jobs_db_new.content.keys()[1]
+                del jobs_db_new.content[new_job_id]
             else:
                 break
 
         active_jobs = jobs_db_old.get_active_jobs()
         for job_id in active_jobs:
-            if jobs_id not in jobs_db_new:
+            if job_id not in jobs_db_new:
                 self.content_diff[job_id] = jobs_db_new[job_id]
             else:
                 if jobs_db_new[job_id][:32] != jobs_db_old[job_id]:
                     self.content_diff[job_id] = jobs_db_new[job_id]
                 else:
                     self.file_list_diff[job_id] = set(
-                        jobs_db_new[job_id][cls.NUMBER_OF_FILES]) - set(jobs_db_old[job_id][cls.NUMBER_OF_FILES])
+                        jobs_db_new[job_id][self.NUMBER_OF_FILES]) - set(jobs_db_old[job_id][self.NUMBER_OF_FILES])
                     self.attempts_diff[job_id] = [job_id] = jobs_db_new[job_id][set(
-                        jobs_db_new[job_id][cls.ATTEMPTS]) - set(jobs_db_old[job_id][cls.ATTEMPTS])]
+                        jobs_db_new[job_id][self.ATTEMPTS]) - set(jobs_db_old[job_id][self.ATTEMPTS])]
                     if len(self.file_list_diff[job_id]) == 0:
                         del self.file_list_diff[job_id]
-                    for attempt in jobs_db_new[job_id][cls.ATTEMPTS]:
+                    for attempt in jobs_db_new[job_id][self.ATTEMPTS]:
                         self.attempts_diff[job_id][attempt] = OrderedDict()
-                        if attempt not in jobs_db_old[job_id][cls.ATTEMPTS]:
-                            self.attempts_diff[job_id][attempt] = jobs_db_new[job_id][cls.ATTEMPTS][attempt]
+                        if attempt not in jobs_db_old[job_id][self.ATTEMPTS]:
+                            self.attempts_diff[job_id][attempt] = jobs_db_new[job_id][self.ATTEMPTS][attempt]
                         else:
-                            file_list = set(obs_db_new[job_id][cls.ATTEMPTS][attempt]) - set(
-                                obs_db_old[job_id][cls.ATTEMPTS][attempt])
+                            file_list = set(obs_db_new[job_id][self.ATTEMPTS][attempt]) - set(
+                                jobs_db_old[job_id][self.ATTEMPTS][attempt])
                             self.attempts_diff[job_id][attempt] = list(file_list)
 
 
