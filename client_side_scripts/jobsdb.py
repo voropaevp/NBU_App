@@ -47,6 +47,22 @@ class JobsDB(object):
         else:
             Exception("self.content is not existent")
 
+    def __delitem__(self, item):
+        if item in self.content:
+            if item in self.content:
+                del self.content[item]
+            else:
+                Exception("%r key does not exists in self.content" % item)
+        else:
+            Exception("self.content is not existent")
+
+    @property
+    def keys(self):
+        if self.content:
+            return self.content.keys()
+        else:
+            Exception("self.content is not existent")
+
 
     @classmethod
     def from_csv(cls, path):
@@ -58,11 +74,9 @@ class JobsDB(object):
             if m:
                 job_id = line[0][m.start():m.end()]
                 content[job_id] = dict()
-                content[job_id]["PARAMS"] = list()
             else:
                 raise Exception("Job ID not found in line: %r" % line)
-            for i in range(1, cls.NUMBER_OF_FILES):
-                content[job_id]["FILES"].append(line[i])
+            content[job_id]["PARAMS"] = line[1:cls.NUMBER_OF_FILES]
             offset = int(line[cls.NUMBER_OF_FILES])  # Number of files
             if offset not in (0, None):
                 file_list = line[cls.NUMBER_OF_FILES + 1:cls.NUMBER_OF_FILES + 2 + offset]  # File names
@@ -125,31 +139,44 @@ class JobsDB(object):
     def from_diff(cls, jobs_db_old, jobs_db_new):
         assert type(jobs_db_new) is JobsDB, "Type is not JobsDB for jobs_db_new: %r" % type(jobs_db_new)
         assert type(jobs_db_old) is JobsDB, "Type is not JobsDB for jobs_db_old: %r" % type(jobs_db_old)
-        content_diff = OrderedDict()
-        attempts_diff = OrderedDict()
-        file_list_diff = OrderedDict()
-        if jobs_db_new.content.keys()[1] < jobs_db_old.content.keys()[1]:
-            raise Exception("New jobs object appears to be older the old jobs object" + jobs_db_new.content.keys()[
-                1] + " should be greater than " + jobs_db_old.content.keys()[1])
+        content = OrderedDict()
+        if jobs_db_new.keys[1] < jobs_db_old.keys[1]:
+            raise Exception("New jobs object appears to be older the old jobs object" + jobs_db_new.keys[
+                1] + " should be greater than " + jobs_db_old.keys[1])
 
         while True:
-            if len(jobs_db_new.content) == 0:
+            if len(jobs_db_new) == 0:
                 break
-            new_job_id = jobs_db_new.content.keys()[1]
-            old_job_id = jobs_db_old.content.keys()[1]
+            new_job_id = jobs_db_new.keys[1]
+            old_job_id = jobs_db_old.keys[1]
             if new_job_id >= old_job_id:
-                content_diff[new_job_id] = jobs_db_new.content[new_job_id]
-                del jobs_db_new.content[new_job_id]
+                content[new_job_id] = jobs_db_new[new_job_id]
+                del jobs_db_new[new_job_id]
             else:
                 break
 
         active_jobs = jobs_db_old.get_active_jobs()
 
         for job_id in active_jobs:
-            if job_id in jobs_db_new.content:
-                if jobs_db_new.content[job_id]["PARAMS"] != jobs_db_old.content[job_id]["PARAMS"]:
-                    content.content[job_id]["PARAMS"]
-                if
+            if job_id in jobs_db_new:
+                for o in ("PARAMS", "ATTEMPTS", "FILES"):
+                    if jobs_db_new[job_id]["PARAMS"] != jobs_db_old[job_id]["PARAMS"]:
+                        content["job_id"]["PARAMS"] = dict()
+                        content["job_id"]["PARAMS"] = jobs_db_new["job_id"]["PARAMS"]
+                    if "ATTEMPTS" in jobs_db_new["job_id"]:
+                        content["job_id"]["ATTEMPTS"] = dict()
+                        for attempt in jobs_db_new["job_id"]["ATTEMPTS"]:
+                            if attempt not in jobs_db_old["job_id"]["ATTEMPTS"]:
+                                content["job_id"]["ATTEMPTS"] = jobs_db_new["job_id"]["ATTEMPTS"][attempt]
+                            else:
+                                if jobs_db_new["job_id"]["ATTEMPTS"][attempt] != jobs_db_nold["job_id"]["ATTEMPTS"][attempt]:
+                                    content["job_id"]["ATTEMPTS"][attempt] = jobs_db_new["job_id"]["ATTEMPTS"][attempt]
+
+
+                    if jobs_db_new[job_id]["ATTEMPTS"] != jobs_db_old[job_id]["ATTEMPTS"]:
+
+                        content["job_id"]["ATTEMPTS"] = dict()
+                        content["job_id"]["ATTEMPTS"] = jobs_db_new["job_id"]["ATTEMPTS"]
             # if jobs_db_new.content[job_id]["PARAMS"][2:cls.ATTEMPTS] != jobs_db_old.content[job_id][2:cls.ATTEMPTS]:
             # content_diff[job_id] = jobs_db_new.content[job_id]
             # else:#  stop after pushing full job details.
