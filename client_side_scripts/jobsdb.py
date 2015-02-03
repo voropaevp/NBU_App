@@ -9,6 +9,31 @@ from re import search
 import unicodecsv
 
 
+'''
+JobsDB is a collection object, that represents output of bpdbjobs command in hierarchical structure.
+.content is main collection inside this class holding all of instance data. For indexing purposes job parameters, file list, attempt properties, and logs.
+[
+    "job id i": {
+        "PARAMS": [type, policy, master server,....] # in bpdbjobs order
+        "FILES": [file1, file2,...] # files writen (not actual files but backup section)
+        "ATTEMPTS": {
+            "attempt number x": [pid, residence,...] # attempt x properties
+            "attempt number y": [pid, residence,...] # attempt y properties
+            ...
+            }
+        "LOGS": {
+            "attempt number x": [log entry 1, log entry 2,...] # attempt x logs
+            "attempt number y": [log entry 1, log entry 2,...] # attempt x logs
+            }
+        }
+    ,
+    "job id j": {
+        ....
+        }
+]
+'''
+
+
 class JobsDB(object):
     NUMBER_OF_FILES = 31  # absolute field offset for file count in csv or in content object
     ATTEMPTS = 32  # absolute field offset for job attempts in content
@@ -135,6 +160,7 @@ class JobsDB(object):
         except Exception:
             raise
 
+
     @classmethod
     def from_diff(cls, jobs_db_old, jobs_db_new):
         assert type(jobs_db_new) is JobsDB, "Type is not JobsDB for jobs_db_new: %r" % type(jobs_db_new)
@@ -183,8 +209,7 @@ class JobsDB(object):
                             content[job_id]["LOGS"][attempt] = list(diff)
         return cls(content)
 
+
 data1 = JobsDB.from_csv(r"C:\Users\vorop_000\Desktop\all_columns")
 data = JobsDB.from_json(r"C:\Users\vorop_000\Desktop\all_columns.json")
-data3 = JobsDB.from_diff(data1,data)
-print data3[u'749120']['LOGS'][u'1']
-
+data3 = JobsDB.from_diff(data1, data)
