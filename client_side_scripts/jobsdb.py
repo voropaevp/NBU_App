@@ -80,7 +80,7 @@ class JobsDB(object):
             content[job_id]["FILES"] = dict()
             content[job_id]["ATTEMPTS"] = dict()
             content[job_id]["LOGS"] = dict()
-            offset = int(line[cls.NUMBER_OF_FILES])  # Number of files
+            offset = int(line[cls.NUMBER_OF_FILES])
             if offset not in (0, None):
                 file_list = line[cls.NUMBER_OF_FILES + 1:cls.NUMBER_OF_FILES + 1 + offset]  # File names
                 content[job_id]["FILES"] = file_list
@@ -92,11 +92,11 @@ class JobsDB(object):
                     log_offset = int(line[cls.NUMBER_OF_LOGS + offset])
                     if log_offset not in (0, None):
                         logs = line[cls.NUMBER_OF_LOGS + 1 + offset:cls.NUMBER_OF_LOGS + 1 + log_offset + offset]
-                        content[job_id]["LOGS"][i] = logs
+                        content[job_id]["LOGS"][unicode(i)] = logs
                     offset += log_offset
                     attempt.append(line[cls.NUMBER_OF_LOGS + 1 + offset])  # trybyteswritten
                     attempt.append(line[cls.NUMBER_OF_LOGS + 2 + offset])  # tryfileswritten
-                    content[job_id]["ATTEMPTS"][i] = attempt
+                    content[job_id]["ATTEMPTS"][unicode(i)] = attempt
                     offset += 11
             for i in range(offset + 1, len(line) - 1):
                 content[job_id]["PARAMS"].append(line[i])
@@ -158,6 +158,7 @@ class JobsDB(object):
         active_jobs = jobs_db_old.get_active_jobs()
 
         for job_id in active_jobs:
+            content[job_id] = dict()
             if job_id in jobs_db_new:
                 content[job_id]["PARAMS"] = list()
                 content[job_id]["LOGS"] = dict()
@@ -180,10 +181,10 @@ class JobsDB(object):
                         if jobs_db_new[job_id]["LOGS"][attempt] != jobs_db_old[job_id]["LOGS"][attempt]:
                             diff = set(jobs_db_new[job_id]["LOGS"][attempt]) - set(jobs_db_old[job_id]["LOGS"][attempt])
                             content[job_id]["LOGS"][attempt] = list(diff)
+        return cls(content)
 
 data1 = JobsDB.from_csv(r"C:\Users\vorop_000\Desktop\all_columns")
 data = JobsDB.from_json(r"C:\Users\vorop_000\Desktop\all_columns.json")
 data3 = JobsDB.from_diff(data1,data)
-len(data)
-len(data1)
-print json.dump(data3.context)
+print data3[u'749120']['LOGS'][u'1']
+
