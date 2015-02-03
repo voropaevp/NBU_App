@@ -77,24 +77,25 @@ class JobsDB(object):
             else:
                 raise Exception("Job ID not found in line: %r" % line)
             content[job_id]["PARAMS"] = line[1:cls.NUMBER_OF_FILES]
+            content[job_id]["FILES"] = dict()
+            content[job_id]["ATTEMPTS"] = dict()
+            content[job_id]["LOGS"] = dict()
             offset = int(line[cls.NUMBER_OF_FILES])  # Number of files
             if offset not in (0, None):
-                file_list = line[cls.NUMBER_OF_FILES + 1:cls.NUMBER_OF_FILES + 2 + offset]  # File names
+                file_list = line[cls.NUMBER_OF_FILES + 1:cls.NUMBER_OF_FILES + 1 + offset]  # File names
                 content[job_id]["FILES"] = file_list
-            if line[cls.NUMBER_OF_FILES + 2 + offset] != 0:
-                content[job_id]["ATTEMPTS"] = dict()
+            if line[cls.NUMBER_OF_FILES + 1 + offset] != 0:
                 offset += cls.NUMBER_OF_FILES + 1
                 attempts_number = int(line[offset])
                 for i in range(1, attempts_number + 1):
                     attempt = line[1 + offset:cls.NUMBER_OF_LOGS + offset]
                     log_offset = int(line[cls.NUMBER_OF_LOGS + offset])
                     if log_offset not in (0, None):
-                        content[job_id]["LOGS"] = dict()
                         logs = line[cls.NUMBER_OF_LOGS + 1 + offset:cls.NUMBER_OF_LOGS + 1 + log_offset + offset]
                         content[job_id]["LOGS"][i] = logs
+                    offset += log_offset
                     attempt.append(line[cls.NUMBER_OF_LOGS + 1 + offset])  # trybyteswritten
                     attempt.append(line[cls.NUMBER_OF_LOGS + 2 + offset])  # tryfileswritten
-                    offset += log_offset
                     content[job_id]["ATTEMPTS"][i] = attempt
                     offset += 11
             for i in range(offset + 1, len(line) - 1):
@@ -126,8 +127,7 @@ class JobsDB(object):
     def write_json(self, path):
         try:
             json_file = codecs.open(path, 'w', encoding='utf-8')
-            self.content = json.dump(self, json_file)
-            sorted(self.content, reverse=True)
+            self.content = json.dump(self.content, json_file)
             json_file.close()
         except IOError:
             print u"Couldn't write file at {0:s}".format(path)
@@ -159,49 +159,31 @@ class JobsDB(object):
 
         for job_id in active_jobs:
             if job_id in jobs_db_new:
-                for o in ("PARAMS", "ATTEMPTS", "FILES"):
-                    if jobs_db_new[job_id]["PARAMS"] != jobs_db_old[job_id]["PARAMS"]:
-                        content["job_id"]["PARAMS"] = dict()
-                        content["job_id"]["PARAMS"] = jobs_db_new["job_id"]["PARAMS"]
-                    if "ATTEMPTS" in jobs_db_new["job_id"]:
-                        content["job_id"]["ATTEMPTS"] = dict()
-                        for attempt in jobs_db_new["job_id"]["ATTEMPTS"]:
-                            if attempt not in jobs_db_old["job_id"]["ATTEMPTS"]:
-                                content["job_id"]["ATTEMPTS"] = jobs_db_new["job_id"]["ATTEMPTS"][attempt]
-                            else:
-                                if jobs_db_new["job_id"]["ATTEMPTS"][attempt] != jobs_db_nold["job_id"]["ATTEMPTS"][attempt]:
-                                    content["job_id"]["ATTEMPTS"][attempt] = jobs_db_new["job_id"]["ATTEMPTS"][attempt]
-
-
-                    if jobs_db_new[job_id]["ATTEMPTS"] != jobs_db_old[job_id]["ATTEMPTS"]:
-
-                        content["job_id"]["ATTEMPTS"] = dict()
-                        content["job_id"]["ATTEMPTS"] = jobs_db_new["job_id"]["ATTEMPTS"]
-            # if jobs_db_new.content[job_id]["PARAMS"][2:cls.ATTEMPTS] != jobs_db_old.content[job_id][2:cls.ATTEMPTS]:
-            # content_diff[job_id] = jobs_db_new.content[job_id]
-            # else:#  stop after pushing full job details.
-            #     file_list_diff[job_id] = set(
-            #         jobs_db_new[job_id][cls.NUMBER_OF_FILES]) - set(
-            #         jobs_db_old.content[job_id][cls.NUMBER_OF_FILES])
-            #     attempts_diff[job_id] = [job_id] = jobs_db_new.content[job_id][set(
-            #         jobs_db_new.content[job_id][ATTEMPTS]) - set(jobs_db_old.content[job_id][ATTEMPTS])]
-            #     if len(file_list_diff[job_id]) == 0:
-            #         del file_list_diff[job_id]
-            #     for attempt in jobs_db_new.content.content[job_id][ATTEMPTS]:
-            #         attempts_diff[job_id][attempt] = OrderedDict()
-            #         if attempt not in jobs_db_old.content[job_id][ATTEMPTS]:
-            #             attempts_diff[job_id][attempt] = jobs_db_new.content[job_id][ATTEMPTS][attempt]
-            #         else:
-            #             file_list = set(jobs_db_new.content[job_id][ATTEMPTS][attempt]) - set(
-            #                 jobs_db_old.content[job_id][ATTEMPTS][attempt])
-            #             attempts_diff[job_id][attempt] = list(file_list)
-
+                content[job_id]["PARAMS"] = list()
+                content[job_id]["LOGS"] = dict()
+                content[job_id]["FILES"] = list()
+                content[job_id]["ATTEMPTS"] = dict()
+                if jobs_db_new[job_id]["PARAMS"] != jobs_db_old[job_id]["PARAMS"]:
+                    content[job_id]["PARAMS"] = jobs_db_new[job_id]["PARAMS"]
+                if jobs_db_new[job_id]["FILES"] != jobs_db_old[job_id]["FILES"]:
+                    content[job_id]["FILES"] = jobs_db_new[job_id]["FILES"]
+                for attempt in jobs_db_new[job_id]["ATTEMPTS"]:
+                    if attempt not in jobs_db_old[job_id]["ATTEMPTS"]:
+                        content[job_id]["ATTEMPTS"] = jobs_db_new[job_id]["ATTEMPTS"][attempt]
+                    else:
+                        if jobs_db_new[job_id]["ATTEMPTS"][attempt] != jobs_db_old[job_id]["ATTEMPTS"][attempt]:
+                            content[job_id]["ATTEMPTS"][attempt] = jobs_db_new[job_id]["ATTEMPTS"][attempt]
+                for attempt in jobs_db_new[job_id]["LOGS"]:
+                    if attempt not in jobs_db_old[job_id]["LOGS"]:
+                        content[job_id]["LOGS"] = jobs_db_new[job_id]["LOGS"][attempt]
+                    else:
+                        if jobs_db_new[job_id]["LOGS"][attempt] != jobs_db_old[job_id]["LOGS"][attempt]:
+                            diff = set(jobs_db_new[job_id]["LOGS"][attempt]) - set(jobs_db_old[job_id]["LOGS"][attempt])
+                            content[job_id]["LOGS"][attempt] = list(diff)
 
 data1 = JobsDB.from_csv(r"C:\Users\vorop_000\Desktop\all_columns")
 data = JobsDB.from_json(r"C:\Users\vorop_000\Desktop\all_columns.json")
-data_diff = JobsDBDiff(data1, data)
-print data_diff.content_diff.keys()
-print data_diff.attempts_diff.items()
-print data_diff.file_list_diff.items()
-
-# data.write_json(r"C:\Users\vorop_000\Desktop\all_columns.json")
+data3 = JobsDB.from_diff(data1,data)
+len(data)
+len(data1)
+print json.dump(data3.context)
