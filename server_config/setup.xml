@@ -1,0 +1,31 @@
+<setup>
+  <block title="Configure This App">
+    <text>Setup splunk for NBU parameters</text>
+  </block>
+
+  <block title="A text input"
+         endpoint="mycustom/customendpoint" entity="setupentity">
+
+      <input field="field_1">
+        <label>Enter your text</label>
+        <type>text</type>
+      </input>
+
+  </block>
+
+  <block title="Enable and set a numeric value"
+         endpoint="mycustom/customendpoint" entity="setupentity">
+
+    <input field="field_2_boolean">
+      <label>Enable This Input</label>
+      <type>bool</type>
+    </input>
+
+    <input field="field_3" endpoint="mycustom/customendpoint" entity="setupentity">
+      <label>Set this number (minimum value=60)</label>
+      <type>text</type>
+    </input>
+
+  </block>
+
+</setup>

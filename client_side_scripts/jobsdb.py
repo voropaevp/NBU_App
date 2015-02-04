@@ -4,6 +4,7 @@ import sys
 import codecs
 import json
 from collections import OrderedDict
+import os
 from re import search
 
 import unicodecsv
@@ -11,7 +12,8 @@ import unicodecsv
 
 '''
 JobsDB is a collection object, that represents output of bpdbjobs command in hierarchical structure.
-.content is main collection inside this class holding all of instance data. For indexing purposes job parameters, file list, attempt properties, and logs.
+.content is main collection inside this class holding all of instance data. For indexing purposes job parameters, file
+list, attempt properties, and logs.
 [
     "job id i": {
         "PARAMS": [type, policy, master server,....] # in bpdbjobs order
@@ -23,7 +25,7 @@ JobsDB is a collection object, that represents output of bpdbjobs command in hie
             }
         "LOGS": {
             "attempt number x": [log entry 1, log entry 2,...] # attempt x logs
-            "attempt number y": [log entry 1, log entry 2,...] # attempt x logs
+            "attempt number y": [log entry 1, log entry 2,...] # attempt y logs
             }
         }
     ,
@@ -208,6 +210,28 @@ class JobsDB(object):
                             diff = set(jobs_db_new[job_id]["LOGS"][attempt]) - set(jobs_db_old[job_id]["LOGS"][attempt])
                             content[job_id]["LOGS"][attempt] = list(diff)
         return cls(content)
+
+def bpdbjobs():
+    UNIX_BPDBJOBS = r'/usr/openv/netbackup/bin/admincmd/bpdbjobs'
+    UNIX_SPLUNK_HOME = r'/opt/splunk'
+    WIN_BPDBJOBS = r'C:\Program Files\Veritas\NetBackup\bin\admincmd\bpdbjobs'
+    WIN_SPLUNK_HOME = r'C:\Program Files\Splunk'
+
+    if sys.platform.startswith('win'):
+        bpdbjobs_p = UNIX_BPDBJOBS
+        splunk_home = UNIX_SPLUNK_HOME
+    else:
+        bpdbjobs_p = WIN_BPDBJOBS
+        splunk_home = WIN_SPLUNK_HOME
+    if not os.path.isfile(bpdbjobs_p):
+        Exception("bpdbjobs command no found in %p" % bpdbjobs_p)
+        sys.exit(1)
+    if not os.path.isdir(splunk_home):
+        Exception("bpdbjobs command no found in %p" % splunk_home)
+        sys.exit(1)
+    os.path.join(splunk_home, 'etc', 'apps', 'NBU_App', 'bin', 'all_columns.csv')
+
+
 
 
 data1 = JobsDB.from_csv(r"C:\Users\vorop_000\Desktop\all_columns")
