@@ -1,0 +1,10 @@
+<view stylesheet="home.css" template="splunk_app_for_NBU:/templates/layout/NBU_home.html">
+  <label>Home</label>
+  <module name="NBUsettings" layoutPanel="viewHeader">
+    <param name="configLink">/app/splunk_app_for_NBU/settings</param>
+  </module>
+  <module name="NBU_home" layoutPanel="viewHeader">
+      <param name=""
+  </module>
+</view>
+

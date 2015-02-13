@@ -1,0 +1,4 @@
+<nav color="#FF8C00">
+  <view name="home" default="true" />
+  <view name="settings" />
+</nav>
