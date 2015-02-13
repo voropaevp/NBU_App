@@ -1,0 +1,20 @@
+<setup>
+  <block title="Configure This App">
+    <text>Setup parameters for NBU plug-in</text>
+  </block>
+
+  <block title="Install directory"
+         endpoint="configs/conf-NBU" entity="Main">
+
+      <input field="install_path">
+        <label>NetBackup install path</label>
+        <type>text</type>
+      </input>
+
+      <input field="polling_interval">
+        <label>Polling interval</label>
+        <type>int</type>
+      </input>
+</block>
+
+</setup>
