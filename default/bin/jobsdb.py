@@ -1,8 +1,22 @@
-__author__ = 'Pavel Voropaev'
+# Copyright 2015 Pavel Voropaev
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 
 import sys
 import codecs
 import json
+from time import time
 from collections import OrderedDict
 import os
 from re import search
@@ -162,6 +176,101 @@ class JobsDB(object):
         except Exception:
             raise
 
+    # Final output processing to splunk. Had to be modified from regular dump, since splunk doesn't support hiearchical
+    # object queries, e.i. select JobID->"PARAMS"->Policy couldn't be done.
+
+    def write_csv_for_splunk(self, path):
+        try:
+            ts = int(time())
+            params = list()
+            param = ('jobid', 'splunk_time', 'jobtype', 'state', 'status', 'class',
+                     'schedule', 'client', 'server', 'started', 'elapsed',
+                     'ended', 'stunit', 'try', 'operation', 'kbytes',
+                     'files', 'pathlastwritten', 'percent', 'jobpid', 'owner',
+                     'subtype', 'classtype', 'schedule_type', 'priority', 'group',
+                     'masterserver', 'retentionunits', 'retentionperiod', 'compression',
+                     'kbyteslastwritten', 'fileslastwritten', 'parentjob', 'kbpersec', 'copy', 'robot', 'vault',
+                     'profile', 'session', 'ejecttapes', 'srcstunit', 'srcserver',
+                     'srcmedia', 'dstmedia', 'stream', 'suspendable', 'resumable',
+                     'restartable', 'datamovement', 'frozenimage', 'backupid', 'killable',
+                     'controllinghost', 'offhost', 'FT', 'queue_reason', 'dedup_ratio','accel_opt', 'dbinst')
+            _file = ('jobid', 'splunk_time', 'filename')
+            attempt = (
+            'jobid', 'attempt', 'splunk_time', 'trypid', 'trystunit', 'tryserver', 'trystarted', 'tryelapsed',
+            'tryended', 'trystatus', 'trystatusdescription', 'trybyteswritten', 'tryfileswritten')
+            log = ('jobid', 'attempt', 'splunk_time', 'log_entry')
+
+            params.append(param)
+            attempts = list()
+            attempts.append(attempt)
+            logs = list()
+            logs.append(log)
+            files = list()
+            files.append(_file)
+            try:
+                for job_id in self:
+                    if "PARAMS" in self[job_id]:
+                        param = list()
+                        param.append(job_id)
+                        param.append(ts)
+                        param[3:] = self[job_id]["PARAMS"][0:]
+                        params.append(param)
+                    if "FILES" in self[job_id]:
+                        if len(self[job_id]["FILES"]) > 0:
+                            for f in self[job_id]["FILES"]:
+                                _file = list()
+                                _file.append(job_id)
+                                _file.append(ts)
+                                _file.append(f)
+                                files.append(_file)
+                    if "LOGS" in self[job_id]:
+                        if len(self[job_id]["LOGS"]) > 0:
+                            for attempt in self[job_id]["LOGS"]:
+                                if len(self[job_id]["LOGS"][attempt]) > 0:
+                                    for entry in self[job_id]["LOGS"][attempt]:
+                                        log = list()
+                                        log.append(job_id)
+                                        log.append(attempt)
+                                        log.append(ts)
+                                        log.append(entry)
+                                        logs.append(log)
+                    if "ATTEMPTS" in self[job_id]:
+                        for i in self[job_id]["ATTEMPTS"]:
+                            attempt = list()
+                            attempt.append(job_id)
+                            attempt.append(i)
+                            attempt.append(ts)
+                            attempt[4:] = self[job_id]["ATTEMPTS"][i][0:]
+                            attempts.append(attempt)
+            except:
+                Exception("Could not process %s Job ID for splunk input" % job_id)
+            if len(params) > 1:
+                f = codecs.open(path + "_param.in", 'w', encoding='utf-8')
+                w = unicodecsv.writer(f, encoding='utf-8')
+                w.writerows(params)
+                f.close()
+            if len(logs) > 1:
+                f = codecs.open(path + "_logs.in", 'w', encoding='utf-8')
+                w = unicodecsv.writer(f, encoding='utf-8')
+                w.writerows(logs)
+                json.dump(logs, f)
+                f.close()
+            if len(files) > 1:
+                f = codecs.open(path + "_files.in", 'w', encoding='utf-8')
+                w = unicodecsv.writer(f, encoding='utf-8')
+                w.writerows(files)
+                f.close()
+            if len(attempts) > 1:
+                f = codecs.open(path + "_attempts.in", 'w', encoding='utf-8')
+                w = unicodecsv.writer(f, encoding='utf-8')
+                w.writerows(attempts)
+                f.close()
+        except IOError:
+            print u"Couldn't write file at {0:s}".format(path)
+            sys.exit(1)
+        except Exception:
+            raise
+
 
     @classmethod
     def from_diff(cls, jobs_db_old, jobs_db_new):
@@ -211,6 +320,7 @@ class JobsDB(object):
                             content[job_id]["LOGS"][attempt] = list(diff)
         return cls(content)
 
+
 def bpdbjobs():
     UNIX_BPDBJOBS = r'/usr/openv/netbackup/bin/admincmd/bpdbjobs'
     UNIX_SPLUNK_HOME = r'/opt/splunk'
@@ -232,8 +342,7 @@ def bpdbjobs():
     os.path.join(splunk_home, 'etc', 'apps', 'NBU_App', 'bin', 'all_columns.csv')
 
 
-
-
 data1 = JobsDB.from_csv(r"C:\Users\vorop_000\Desktop\all_columns")
 data = JobsDB.from_json(r"C:\Users\vorop_000\Desktop\all_columns.json")
 data3 = JobsDB.from_diff(data1, data)
+data1.write_csv_for_splunk(r"C:\Users\vorop_000\Desktop\out")

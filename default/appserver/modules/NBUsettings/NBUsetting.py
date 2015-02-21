@@ -28,7 +28,7 @@ BIN_DIR = os.path.join(APP_DIR, 'bin')
 if not BIN_DIR in sys.path:
     sys.path.append(BIN_DIR)
 
-from unix.models.unix import Unix
+from NBU.models.NBU import NBU
 
 
 class NBUFTR(module.ModuleHandler):
@@ -57,9 +57,9 @@ class NBUFTR(module.ModuleHandler):
         app = App.get(App.build_id(app_name, app_name, user))
 
         try:
-            a = Unix.get(Unix.build_id(user, app_name, user))
+            a = NBU.get(NBU.build_id(user, app_name, user))
         except:
-            a = Unix(app_name, user, user)
+            a = NBU(app_name, user, user)
 
         if kwargs.get('set_ignore'):
             try:

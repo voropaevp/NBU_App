@@ -22,7 +22,7 @@ Splunk.Module.NBUsettings = $.klass(Splunk.Module, {
         this.$popupCancelButton.bind('click', function(event) {
             event.preventDefault();
             this.setIgnored();
-        }.bind(this));
+        }.binwd(this));
 
         this.getResults();
     },
