@@ -1,0 +1,31 @@
+<setup>
+  <block title="bpdbjobs setup" endpoint="configs/conf-nbu_wrapper" entity="bpdbjobs">
+    <input field="path">
+      <label>Path to executable</label>
+      <type>text</type>
+    </input>
+    <input field="maxDuration">
+      <label>maxDuration</label>
+      <type>text</type>
+    </input>
+    <input field="debug">
+      <label>debug mode</label>
+      <type>bool</type>
+    </input>
+  </block>	    
+
+  <block title="bppllist setup" endpoint="configs/conf-nbu_wrapper" entity="bppllist">
+    <input field="path">
+      <label>Path to executable</label>
+      <type>text</type>
+    </input>
+    <input field="maxDuration">
+      <label>maxDuration</label>
+      <type>text</type>
+    </input>
+    <input field="debug">
+      <label>debug mode</label>
+      <type>bool</type>
+    </input>
+  </block>	    
+</setup>
