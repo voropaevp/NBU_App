@@ -12,13 +12,13 @@ from datetime import datetime
 #from splunk.models.app import App
 #import splunk.clilib.cli_common
 
-#LOG_FILENAME = os.path.join(os.environ.get('SPLUNK_HOME'),'var','log','splunk','bpimagelist.log')
-#logger = logging.getLogger('bpimagelist_logger')
-#logger.setLevel(logging.DEBUG)
-#handler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=1024000, backupCount=5)
-#handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
-#handler.setLevel(logging.DEBUG)
-#logger.addHandler(handler)
+LOG_FILENAME = os.path.join(os.environ.get('SPLUNK_HOME'),'var','log','splunk','bpimagelist.log')
+logger = logging.getLogger('bpimagelist_logger')
+logger.setLevel(logging.DEBUG)
+handler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=1024000, backupCount=5)
+handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+handler.setLevel(logging.DEBUG)
+logger.addHandler(handler)
 
 IMPORT_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), u'wrapper_utils.py')
 wrapper_utils = imp.load_source('module', IMPORT_FILE)
@@ -52,7 +52,7 @@ def execute():
 #    args = scriptData.args.split(" ")
 #    scriptResult = None
 #    while True:
-#        scriptResult = wrapper_utils.getScriptOutput([scriptData.path] + args, scriptData.maxDuration)
+#        scriptResult = wrapper_utils.getScriptOutput([scriptData.path] + args, scriptData.maxDuration, scriptData.debug, logger)
 #        if(scriptResult[2]):
 #            break
 #        logger.error('Couldn\'t execute script in time')

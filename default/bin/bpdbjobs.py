@@ -53,7 +53,7 @@ def execute():
     args = scriptData.args.split(" ")
     scriptResult = None
     while True:
-        scriptResult = wrapper_utils.getScriptOutput([scriptData.path] + args, scriptData.maxDuration)
+        scriptResult = wrapper_utils.getScriptOutput([scriptData.path] + args, scriptData.maxDuration, scriptData.debug, logger)
         if(scriptResult[2]):
             break
         logger.error('Couldn\'t execute script in time')

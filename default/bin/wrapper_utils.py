@@ -6,14 +6,18 @@ import sys
 
 class Command(object):
     #arguments - arguments to execute in subprocess.Popen
-    def __init__(self, args):
+    def __init__(self, args, debug = False, logger = None):
         self.args = args
         self.process = None
         self.success = True
+        self.debug = debug
+        self.logger = logger
     #timeout - time in seconds after which process will be terminated
     def run(self, timeout):
         temp = tempfile.TemporaryFile()
         def target():
+            if self.debug:
+                self.logger.info("Calling command in custom script: " + str(self.args))
             self.process = subprocess.Popen(self.args, shell=True, stdout=temp)
             self.process.communicate()
 
@@ -26,13 +30,14 @@ class Command(object):
             thread.join()            
         # print saved output
         temp.seek(0) # rewind to the beginning of the file
-        result = temp.readlines(), 
+        result = temp.readlines() 
         temp.close()
         return result
 
 #return array: output line array and returncode 
-def getScriptOutput(args, timeout):
-    command = Command(args)
-    return command.run(timeout), command.process.returncode, command.success
-
-#print getScriptOutput([sys.executable,'D:\\splunk\\nbu_setup_app\\bin\\print.py',] ,100)[0][0]
+def getScriptOutput(args, timeout, debug = False, logger = None):
+    command = Command(args, debug, logger)
+    result = command.run(timeout), command.process.returncode, command.success
+    if debug:
+        logger.info("Custom script command result: " + str(result))
+    return result
